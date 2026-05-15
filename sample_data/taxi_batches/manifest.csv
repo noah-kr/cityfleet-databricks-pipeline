@@ -1,0 +1,4 @@
+batch_id,start_date,end_date,rows,file,size_bytes,description
+batch_001,2013-01-01,2013-01-04,864187,batch_001.csv.gz,57276123,Initial week-part load: first four high-volume operating days
+batch_002,2013-01-05,2013-01-14,599783,batch_002.csv.gz,39697155,Second arrival: weekend/low-volume gap plus renewed weekday demand
+batch_003,2013-01-15,2013-01-20,536029,batch_003.csv.gz,35564773,Third arrival: later operating period for second refresh demonstration

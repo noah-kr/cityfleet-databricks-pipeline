@@ -1,0 +1,29 @@
+[
+  {
+    "batch_id": "batch_001",
+    "start_date": "2013-01-01",
+    "end_date": "2013-01-04",
+    "rows": 864187,
+    "file": "batch_001.csv.gz",
+    "size_bytes": 57276123,
+    "description": "Initial week-part load: first four high-volume operating days"
+  },
+  {
+    "batch_id": "batch_002",
+    "start_date": "2013-01-05",
+    "end_date": "2013-01-14",
+    "rows": 599783,
+    "file": "batch_002.csv.gz",
+    "size_bytes": 39697155,
+    "description": "Second arrival: weekend/low-volume gap plus renewed weekday demand"
+  },
+  {
+    "batch_id": "batch_003",
+    "start_date": "2013-01-15",
+    "end_date": "2013-01-20",
+    "rows": 536029,
+    "file": "batch_003.csv.gz",
+    "size_bytes": 35564773,
+    "description": "Third arrival: later operating period for second refresh demonstration"
+  }
+]
