@@ -77,33 +77,5 @@ The validation run processed all three batches successfully. After the final ref
 - The operational hourly demand Gold table contained 314,394 rows.
 - The fare anomaly review Gold table contained 45,382 rows.
 
-## Project Files
-
-```text
-notebooks/
-  01_setup_volume.ipynb
-  02_incremental_refresh.ipynb
-  03_dashboard_and_genie_queries.ipynb
-  99_reset_project_tables.ipynb
-  cityfleet_databricks_validation.py
-
-sample_data/
-  taxi_batches/
-    batch_001.csv.gz
-    batch_002.csv.gz
-    batch_003.csv.gz
-    manifest.csv
-    manifest.json
-
-report/
-  report.tex
-
-report_assets/
-  databricks_gold_kpi_sample.png
-  databricks_gold_hourly_sample.png
-  genie_answer.png
-
-report_draft.md
-```
 
 The notebook `cityfleet_databricks_validation.py` was used as the final Databricks validation run because it executes the full demonstration in one place: reset, batch processing, Silver validation, Gold table creation, and output checks.
