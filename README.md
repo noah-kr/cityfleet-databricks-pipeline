@@ -107,14 +107,3 @@ report_draft.md
 ```
 
 The notebook `cityfleet_databricks_validation.py` was used as the final Databricks validation run because it executes the full demonstration in one place: reset, batch processing, Silver validation, Gold table creation, and output checks.
-
-## Assignment Criteria Coverage
-
-The project addresses the main grading criteria as follows:
-
-- Realistic business context: taxi fleet dispatch, planning, finance review, and self-service analytics.
-- Multiple consumers: operational dashboard tables, weekly KPI reporting, fare anomaly review, and Genie exploration.
-- Medallion logic: raw Bronze ingestion, typed and validated Silver trips, and purpose-built Gold business tables.
-- Incremental nature: three time-ordered batch files simulate one initial load and two later refreshes.
-- Actionable outputs: Gold tables support driver repositioning, weekly planning, payment mix analysis, and anomaly investigation.
-- Production discussion: the report explains how the prototype would scale using Auto Loader, Structured Streaming, scheduled jobs, Unity Catalog governance, and monitoring.
