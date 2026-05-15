@@ -1,121 +1,120 @@
 # CityFleet Taxi Demand, Revenue & Fare Quality Control Tower
 
-This folder contains a Databricks Free Edition prototype for Assignment 2, Engineering of Data Analysis.
+This project was created for Assignment 2 in Engineering of Data Analysis. It prototypes a Databricks lakehouse pipeline using a Medallion Architecture from Bronze to Silver to Gold.
 
-The project uses the instructor-provided NYC taxi trip dataset to simulate an incremental lakehouse pipeline. The organisational process is taxi fleet operations: dispatch managers use hourly demand tables, fleet planners use weekly KPIs, finance/audit users review fare anomalies, and analysts use Databricks Genie over curated Gold tables.
+The business case is a hypothetical New York taxi fleet operator called CityFleet. The company wants to use trip-level data to improve dispatch decisions, weekly fleet planning, and fare-quality monitoring. The same curated data also supports self-service exploration through Databricks Genie.
 
-## Folder Contents
+## Business Process
 
-- `notebooks/01_setup_volume.ipynb` — creates the Unity Catalog volume folders.
-- `notebooks/02_incremental_refresh.ipynb` — processes the next unprocessed batch: Bronze append, Silver merge, Gold recompute.
-- `notebooks/03_dashboard_and_genie_queries.ipynb` — dashboard SQL queries and Genie test questions.
-- `notebooks/99_reset_project_tables.ipynb` — optional reset notebook for replay.
-- `sample_data/taxi_batches/` — three time-ordered compressed CSV arrival batches.
-- `report_draft.md` — draft text for the report.
+CityFleet receives taxi trip data with vehicle IDs, driver IDs, pickup and dropoff times, trip distance, GPS coordinates, payment type, fare, tip, tolls, and total amount. The process is realistic because these data points are directly connected to fleet operations:
 
-## Databricks Names Used
+- Dispatch teams need hourly demand hotspots to decide where drivers should be repositioned.
+- Fleet planners need weekly KPIs to understand usage, revenue, payment mix, and vehicle productivity.
+- Finance and audit teams need a review queue for suspicious fares or low-quality trip records.
+- Business users need a curated table that can be queried through natural language in Databricks Genie.
 
-Default values:
+## Data Source
 
-- Catalog: `workspace`
-- Schema: `default`
-- Volume: `cityfleet_taxi_project`
-- Landing folder: `/Volumes/workspace/default/cityfleet_taxi_project/landing/`
+The source data is the provided NYC taxi trip dataset. The project uses a sample with 1,999,999 rows covering trips from 2013-01-01 to 2013-01-20.
 
-You may change the notebook widgets if your Databricks workspace uses different names.
+To demonstrate incremental processing, the static dataset was split into three time-ordered compressed CSV batches:
 
-## Run Order
+| Batch | Date range | Rows | Role |
+|---|---:|---:|---|
+| `batch_001.csv.gz` | 2013-01-01 to 2013-01-04 | 864,187 | Initial load |
+| `batch_002.csv.gz` | 2013-01-05 to 2013-01-14 | 599,783 | Refresh iteration 1 |
+| `batch_003.csv.gz` | 2013-01-15 to 2013-01-20 | 536,029 | Refresh iteration 2 |
 
-1. Import all notebooks in `notebooks/` into Databricks Free Edition.
-2. Run `01_setup_volume.ipynb`.
-3. Upload these files into `/Volumes/workspace/default/cityfleet_taxi_project/landing/`:
-   - `sample_data/taxi_batches/batch_001.csv.gz`
-   - `sample_data/taxi_batches/batch_002.csv.gz`
-   - `sample_data/taxi_batches/batch_003.csv.gz`
-4. Run `02_incremental_refresh.ipynb` with `process_mode = next`.
-   - This processes `batch_001`.
-   - Record the final row-count table for the report.
-5. Run `02_incremental_refresh.ipynb` again with `process_mode = next`.
-   - This processes `batch_002`.
-   - Record that Bronze grew, Silver merged, and Gold changed.
-6. Run `02_incremental_refresh.ipynb` a third time with `process_mode = next`.
-   - This processes `batch_003`.
-   - This gives two refresh iterations after the initial load.
-7. Run `03_dashboard_and_genie_queries.ipynb`.
-8. In Databricks SQL, create dashboard visualisations from the SQL queries:
-   - Latest hour demand hotspots.
-   - Hourly demand trend.
-   - Weekly fleet KPIs.
-   - Fare anomaly review queue.
-9. Create a Databricks Genie space using:
-   - `gold_genie_taxi_summary`
-   - `gold_weekly_fleet_kpis`
-   - `gold_fare_anomaly_review`
+The files are stored in `sample_data/taxi_batches/`.
 
-## Expected Batch Sizes
-
-| Batch | Date range | Rows |
-|---|---:|---:|
-| `batch_001` | 2013-01-01 to 2013-01-04 | 864,187 |
-| `batch_002` | 2013-01-05 to 2013-01-14 | 599,783 |
-| `batch_003` | 2013-01-15 to 2013-01-20 | 536,029 |
-
-After all three runs, Bronze should contain 1,999,999 raw rows before any Silver quality filtering.
-
-## Tables Created
+## Medallion Architecture
 
 ### Bronze
 
-- `bronze_taxi_raw`
+The Bronze table is `bronze_taxi_raw`. It keeps the source data as close to the original files as possible. The raw columns are stored as strings, and the pipeline adds metadata such as source file, ingestion batch, ingestion timestamp, and row hash.
 
-Append-only table containing source columns as strings plus:
-
-- `source_file`
-- `ingestion_batch_id`
-- `ingestion_timestamp`
-- `raw_row_hash`
+Purpose: preserve the raw landing history and make every later transformation traceable.
 
 ### Silver
 
-- `silver_taxi_trips`
+The Silver table is `silver_taxi_trips`. It converts raw strings into usable business data:
 
-Typed, validated, deduplicated trip-level table. It includes:
+- timestamps and numeric fields are cast into proper types
+- invalid or suspicious records are flagged
+- pickup and dropoff coordinates are validated
+- trips are assigned to approximate grid cells
+- a deterministic `trip_id` is created for deduplication
+- quality flags are stored instead of silently dropping every imperfect record
 
-- timestamp, numeric fare, distance, and coordinate fields
-- pickup/dropoff grid cells
-- quality booleans
-- `clean_trip`
-- `quality_issues`
-- `trip_id`
+Purpose: create a typed, validated, deduplicated trip-level source of truth.
 
 ### Gold
 
-- `gold_hourly_demand_by_cell` — operational dashboard table.
-- `gold_weekly_fleet_kpis` — strategic fleet planning table.
-- `gold_fare_anomaly_review` — finance/audit action queue.
-- `gold_genie_taxi_summary` — business-readable table for Genie.
+The Gold layer contains business-level tables:
 
-## What to Screenshot for the Report
+| Table | Main user |
+|---|---|
+| `gold_hourly_demand_by_cell` | Dispatch / operations |
+| `gold_weekly_fleet_kpis` | Fleet planning / management |
+| `gold_fare_anomaly_review` | Finance / audit |
+| `gold_genie_taxi_summary` | Business analysts using Genie |
 
-Capture these after each refresh:
+Purpose: serve specific analytical needs instead of exposing raw trip data to every user.
 
-- Final summary table from `02_incremental_refresh.ipynb`.
-- Processed batch IDs in Bronze.
-- Silver quality summary by `ingestion_batch_id`.
+## Databricks Implementation
 
-Capture these after running dashboard queries:
+The Databricks prototype was built in the `workspace.default` schema. The uploaded batch files are stored in the Unity Catalog volume:
 
-- Hotspot table or map from `gold_genie_taxi_summary`.
-- Hourly demand trend visualisation.
-- Weekly KPI table.
-- Fare anomaly queue.
+```text
+/Volumes/workspace/default/cityfleet_taxi_project/landing/
+```
 
-For Genie:
+The validation run processed all three batches successfully. After the final refresh:
 
-- Screenshot at least two successful questions.
-- Screenshot or describe one question that did not work perfectly, then explain that table comments and business-readable column names helped.
+- Bronze contained 1,999,999 raw rows.
+- Silver contained 1,999,999 deduplicated trip records.
+- Silver marked 1,955,237 records as clean trips.
+- The operational hourly demand Gold table contained 314,394 rows.
+- The fare anomaly review Gold table contained 45,382 rows.
 
-## Production Discussion Points
+## Project Files
 
-In production, simulated file upload would be replaced by Auto Loader or cloud file-arrival triggers from object storage. If events arrived continuously, Kafka/Event Hubs plus Structured Streaming could land events into Bronze. Compute would move from Free Edition serverless quotas to scheduled jobs or multi-node clusters. Storage would move from workspace volumes to S3/Azure Blob/GCS with Unity Catalog governance, table permissions, lineage, monitoring, and alerting.
+```text
+notebooks/
+  01_setup_volume.ipynb
+  02_incremental_refresh.ipynb
+  03_dashboard_and_genie_queries.ipynb
+  99_reset_project_tables.ipynb
+  cityfleet_databricks_validation.py
 
+sample_data/
+  taxi_batches/
+    batch_001.csv.gz
+    batch_002.csv.gz
+    batch_003.csv.gz
+    manifest.csv
+    manifest.json
+
+report/
+  report.tex
+
+report_assets/
+  databricks_gold_kpi_sample.png
+  databricks_gold_hourly_sample.png
+  genie_answer.png
+
+report_draft.md
+```
+
+The notebook `cityfleet_databricks_validation.py` was used as the final Databricks validation run because it executes the full demonstration in one place: reset, batch processing, Silver validation, Gold table creation, and output checks.
+
+## Assignment Criteria Coverage
+
+The project addresses the main grading criteria as follows:
+
+- Realistic business context: taxi fleet dispatch, planning, finance review, and self-service analytics.
+- Multiple consumers: operational dashboard tables, weekly KPI reporting, fare anomaly review, and Genie exploration.
+- Medallion logic: raw Bronze ingestion, typed and validated Silver trips, and purpose-built Gold business tables.
+- Incremental nature: three time-ordered batch files simulate one initial load and two later refreshes.
+- Actionable outputs: Gold tables support driver repositioning, weekly planning, payment mix analysis, and anomaly investigation.
+- Production discussion: the report explains how the prototype would scale using Auto Loader, Structured Streaming, scheduled jobs, Unity Catalog governance, and monitoring.
