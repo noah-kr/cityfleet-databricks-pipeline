@@ -102,39 +102,3 @@ After all three batches have been processed, the expected final counts are:
 The implemented consumer output is a Databricks Genie space connected to Gold tables, supported by dashboard-ready Gold queries for operational hotspots, hourly trends, weekly KPIs, and fare anomaly review.
 
 
-## Project Files
-
-```text
-notebooks/
-  01_setup_volume.ipynb
-  02_incremental_refresh.ipynb
-  03_dashboard_and_genie_queries.ipynb
-  99_reset_project_tables.ipynb
-  cityfleet_databricks_validation.py
-
-sample_data/
-  taxi_batches/
-    batch_001.csv.gz
-    batch_002.csv.gz
-    batch_003.csv.gz
-    manifest.csv
-    manifest.json
-
-report/
-  report.tex
-  report.pdf
-
-report_assets/
-  databricks_gold_kpi_sample.png
-  databricks_gold_hourly_sample.png
-  genie_answer.png
-```
-
-## Assignment Criteria Coverage
-
-- Realistic business context: taxi fleet dispatch, planning, finance review, and self-service analytics.
-- Multiple consumers: operational dashboard tables, weekly KPI reporting, fare anomaly review, and Genie exploration.
-- Medallion logic: raw Bronze ingestion, typed and validated Silver trips, and purpose-built Gold business tables.
-- Incremental nature: three time-ordered batch files simulate one initial load and two later refreshes.
-- Actionable outputs: Gold tables support driver repositioning, weekly planning, payment mix analysis, and anomaly investigation.
-- Production discussion: the report explains how the prototype would scale using Auto Loader, Structured Streaming, scheduled jobs, Unity Catalog governance, and monitoring.
