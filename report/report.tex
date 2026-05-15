@@ -21,15 +21,6 @@
 \titleformat{\section}{\large\bfseries}{\thesection}{0.6em}{}
 \titleformat{\subsection}{\normalsize\bfseries}{\thesubsection}{0.6em}{}
 
-\newcommand{\placeholder}[2]{
-\begin{figure}[H]
-\centering
-\fbox{\begin{minipage}[c][#2][c]{0.92\linewidth}
-\centering #1
-\end{minipage}}
-\end{figure}
-}
-
 \begin{document}
 
 \begin{center}
@@ -130,7 +121,7 @@ gold\_genie\_taxi\_summary & Business-readable hourly table with clearer column 
 
 \section{Outputs and Business Actions}
 
-The dashboard is built from Gold tables. Suggested tiles are: latest-hour demand hotspots, hourly demand and revenue trend, weekly fleet KPI table, and fare anomaly review queue. These outputs map directly to actions: operations can guide drivers toward high-demand cells; planners can adjust weekly coverage and incentives; finance can investigate suspicious fare records; analysts can use Genie without querying raw data.
+The implemented self-service consumer is a Databricks Genie space connected to the curated Gold layer. The Gold tables are also dashboard-ready: suggested operational tiles are latest-hour demand hotspots, hourly demand and revenue trend, weekly fleet KPI table, and fare anomaly review queue. These outputs map directly to actions: operations can guide drivers toward high-demand cells; planners can adjust weekly coverage and incentives; finance can investigate suspicious fare records; analysts can use Genie without querying raw data.
 
 The validation notebook processed all three simulated arrivals and produced these cumulative counts: after \texttt{batch\_001}, Bronze and Silver contained 864,187 trips and 845,368 clean trips; after \texttt{batch\_002}, Bronze and Silver contained 1,463,970 trips and 1,431,432 clean trips; after \texttt{batch\_003}, Bronze and Silver contained 1,999,999 trips and 1,955,237 clean trips. The final Gold tables contained 314,394 hourly demand rows and 45,382 fare anomaly review rows.
 
@@ -148,7 +139,7 @@ The validation notebook processed all three simulated arrivals and produced thes
 
 \section{Genie Experience}
 
-Genie was tested against Gold tables rather than Bronze/Silver because Genie performs best when table grain and column names are business-readable. The main table for Genie is \texttt{gold\_genie\_taxi\_summary}, supported by \texttt{gold\_weekly\_fleet\_kpis} and \texttt{gold\_fare\_anomaly\_review}. Useful questions include:
+Genie was tested against Gold tables rather than Bronze/Silver because Genie performs best when table grain and column names are business-readable. The main table for Genie is \texttt{gold\_genie\_taxi\_summary}, supported by \texttt{gold\_weekly\_fleet\_kpis} and \texttt{gold\_fare\_anomaly\_review}. The question ``Which service date and hour had the highest number of taxi trips? Show the top 5 with trip counts.'' worked well because it matched the Gold table grain. Useful additional questions include:
 
 \begin{itemize}
 \item Which service date and hour had the highest number of taxi trips?
@@ -179,6 +170,6 @@ AI tools used: OpenAI Codex in the Codex desktop environment. The work was colla
 
 Development strategy: design-first and schema-guided. First, the dataset and organisational process were chosen by comparing them against the rubric. Then the Bronze/Silver/Gold design was specified. Finally, Gold schemas were adjusted to support both dashboard queries and Genie self-service questions.
 
-Reflection: AI was most useful for converting the assignment rubric into a concrete, reproducible implementation plan and for quickly drafting Spark/SQL notebook code. The main limitation was that final validation depends on running the notebooks in Databricks Free Edition, checking dashboard screenshots, and observing which Genie questions work best in the actual workspace.
+Reflection: AI was most useful for converting the assignment rubric into a concrete, reproducible implementation plan and for quickly drafting Spark/SQL notebook code. The main limitation was that Databricks Free Edition still required interactive validation in the actual workspace: file upload, notebook execution, Genie testing, and final screenshot selection had to be checked manually.
 
 \end{document}
