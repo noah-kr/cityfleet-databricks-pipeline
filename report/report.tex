@@ -12,6 +12,7 @@
 \usepackage{float}
 \usepackage{caption}
 \usepackage{graphicx}
+\graphicspath{{../report_assets/}}
 
 \hypersetup{colorlinks=true, linkcolor=black, urlcolor=blue}
 \setlength{\parindent}{0pt}
@@ -27,8 +28,8 @@
 {\Large \textbf{CityFleet Taxi Demand, Revenue \& Fare Quality Control Tower}}\\
 \vspace{2pt}
 Engineering of Data Analysis --- Assignment 2: Data Pipeline on Databricks \\[5pt]
-Noah Kreyenkamp \\[2pt] 
-Xaver Baeppler
+Noah Kreyenkamp \\[2pt]
+Xaver Baeppler \\[4pt]
 \end{center}
 
 \section{Business Context and Pipeline Design}
@@ -61,18 +62,21 @@ Business analysts & Ask natural-language questions over curated tables using Dat
 \node[box, fill=gray!10] (src) at (0,0) {Simulated arrivals\\batch\_001--003};
 \node[box, fill=orange!12] (bronze) at (3.8,0) {Bronze\\raw append-only};
 \node[box, fill=blue!10] (silver) at (7.6,0) {Silver\\typed, validated\\deduplicated};
-\node[goldbox] (g1) at (11.7,1.25) {Gold\\hourly demand};
-\node[goldbox] (g2) at (11.7,0) {Gold\\weekly KPIs};
-\node[goldbox] (g3) at (11.7,-1.25) {Gold\\fare anomalies};
+\node[goldbox] (g1) at (11.7,1.9) {Gold\\hourly demand};
+\node[goldbox] (g2) at (11.7,0.6) {Gold\\weekly KPIs};
+\node[goldbox] (g3) at (11.7,-0.6) {Gold\\fare anomalies};
+\node[goldbox] (g4) at (11.7,-1.9) {Gold\\Genie summary};
 \node[box, fill=purple!10] (out) at (15.7,0) {Dashboard\\Report\\Genie};
 \draw[arrow] (src) -- (bronze);
 \draw[arrow] (bronze) -- (silver);
 \draw[arrow] (silver.east) -- (g1.west);
 \draw[arrow] (silver.east) -- (g2.west);
 \draw[arrow] (silver.east) -- (g3.west);
+\draw[arrow] (silver.east) -- (g4.west);
 \draw[arrow] (g1.east) -- (out.west);
 \draw[arrow] (g2.east) -- (out.west);
 \draw[arrow] (g3.east) -- (out.west);
+\draw[arrow] (g4.east) -- (out.west);
 \end{tikzpicture}%
 }
 \caption{Medallion architecture used in the Databricks prototype.}
@@ -104,6 +108,8 @@ batch\_003 & 2013-01-15 to 2013-01-20 & 536,029 & Refresh iteration 2 \\
 
 \textbf{Silver.} Table \texttt{silver\_taxi\_trips} casts timestamps and numeric columns, creates a deterministic \texttt{trip\_id}, computes pickup/dropoff grid cells, and stores quality flags. Validation rules check NYC-area coordinates, non-null ordered timestamps, positive duration and distance, non-negative fare/tip, and positive total amount. New batches are merged by \texttt{trip\_id}, making Silver the deduplicated source of truth.
 
+\textbf{Refresh schedule.} In the prototype, the pipeline is triggered manually: one run of notebook \texttt{02\_incremental\_refresh} per simulated arrival. The intended production schedule is: Bronze and Silver refresh on each file arrival (event-driven or every 15~minutes for the operational path); \texttt{gold\_hourly\_demand\_by\_cell} and \texttt{gold\_genie\_taxi\_summary} refresh every 15~minutes; \texttt{gold\_weekly\_fleet\_kpis} refreshes nightly; \texttt{gold\_fare\_anomaly\_review} refreshes daily.
+
 \textbf{Gold.} Four curated tables serve distinct consumers:
 
 \begin{table}[H]
@@ -121,9 +127,15 @@ gold\_genie\_taxi\_summary & Business-readable hourly table with clearer column 
 \end{tabularx}
 \end{table}
 
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{databricks_gold_kpi_table.png}
+\caption{Databricks Unity Catalog view of \texttt{gold\_weekly\_fleet\_kpis} showing the implemented column schema and table metadata.}
+\end{figure}
+
 \section{Outputs and Business Actions}
 
-The implemented self-service consumer is a Databricks Genie space connected to the curated Gold layer. The Gold tables are also dashboard-ready: suggested operational tiles are latest-hour demand hotspots, hourly demand and revenue trend, weekly fleet KPI table, and fare anomaly review queue. These outputs map directly to actions: operations can guide drivers toward high-demand cells; planners can adjust weekly coverage and incentives; finance can investigate suspicious fare records; analysts can use Genie without querying raw data.
+The implemented end-to-end consumer is a Databricks Genie space connected to the curated Gold layer (\texttt{gold\_genie\_taxi\_summary}, \texttt{gold\_weekly\_fleet\_kpis}, and \texttt{gold\_fare\_anomaly\_review}). The Gold tables are also dashboard-ready; notebook \texttt{03\_dashboard\_and\_genie\_queries} contains four parameterised SQL queries that map to suggested tiles: latest-hour demand hotspots, hourly demand and revenue trend, weekly fleet KPI table, and fare anomaly review queue. These outputs map directly to actions: operations can guide drivers toward high-demand cells; planners can adjust weekly coverage and incentives; finance can investigate suspicious fare records; analysts can use Genie without querying raw data.
 
 The validation notebook processed all three simulated arrivals and produced these cumulative counts: after \texttt{batch\_001}, Bronze and Silver contained 864,187 trips and 845,368 clean trips; after \texttt{batch\_002}, Bronze and Silver contained 1,463,970 trips and 1,431,432 clean trips; after \texttt{batch\_003}, Bronze and Silver contained 1,999,999 trips and 1,955,237 clean trips. The final Gold tables contained 314,394 hourly demand rows and 45,382 fare anomaly review rows.
 
@@ -141,17 +153,18 @@ The validation notebook processed all three simulated arrivals and produced thes
 
 \section{Genie Experience}
 
-Genie was tested against Gold tables rather than Bronze/Silver because Genie performs best when table grain and column names are business-readable. The main table for Genie is \texttt{gold\_genie\_taxi\_summary}, supported by \texttt{gold\_weekly\_fleet\_kpis} and \texttt{gold\_fare\_anomaly\_review}. The question ``Which service date and hour had the highest number of taxi trips? Show the top 5 with trip counts.'' worked well because it matched the Gold table grain. Useful additional questions include:
+Genie was tested against Gold tables rather than Bronze/Silver because Genie performs best when table grain and column names are business-readable. The main table for Genie is \texttt{gold\_genie\_taxi\_summary}, supported by \texttt{gold\_weekly\_fleet\_kpis} and \texttt{gold\_fare\_anomaly\_review}.
+
+\textbf{Questions that worked.} ``Which service date and hour had the highest number of taxi trips? Show the top 5 with trip counts.'' worked well because it matched the Gold table grain exactly. Other successful questions:
 
 \begin{itemize}
-\item Which service date and hour had the highest number of taxi trips?
 \item Which pickup areas had the highest demand score in the latest available hour?
 \item How did total revenue and active vehicles change by week?
 \item What are the most common fare anomaly reasons?
 \item Which hours have the highest card payment share?
 \end{itemize}
 
-If Genie struggles with terms such as ``hotspot'', the schema mitigates this by using explicit names like \texttt{pickup\_area\_latitude}, \texttt{pickup\_area\_longitude}, \texttt{trip\_count}, and \texttt{demand\_score}, plus table comments.
+\textbf{Questions that failed or required schema changes.} Questions using the word ``hotspot'' (e.g.\ ``Show me the current demand hotspots'') initially returned no results or a generic table dump because Genie could not map ``hotspot'' to any column. The fix was to add the column \texttt{demand\_score} with a table comment explaining that higher values indicate busier pickup areas, and to rename coordinate columns to \texttt{pickup\_area\_latitude} and \texttt{pickup\_area\_longitude} so Genie could infer geographic intent. After these changes, geographic demand questions answered correctly. Similarly, questions referencing ``revenue per driver'' failed until \texttt{active\_drivers} was included in the Genie table alongside revenue columns, giving Genie enough context to compute the ratio without hallucinating column names.
 
 \begin{figure}[H]
 \centering
@@ -168,7 +181,7 @@ At full scale, Bronze would retain raw history cheaply, Silver would be partitio
 \newpage
 \section*{AI Tools Usage}
 
-AI tools used: OpenAI Codex in the Codex desktop environment. The work was collaborative and agentic: Codex helped read the project requirements, profile the provided datasets, compare possible dataset choices, generate the batch files, draft Databricks notebooks, and prepare this report template. The student reviewed the design, made project decisions, ran the Databricks prototype, created the dashboard/Genie outputs, and selected final screenshots and wording for submission.
+AI tools used: OpenAI Codex in the Codex desktop environment. The work was collaborative and agentic: Codex helped read the project requirements, profile the provided datasets, compare possible dataset choices, generate the batch files, draft Databricks notebooks, and prepare this report template. The students reviewed the design, made project decisions, ran the Databricks prototype, created the dashboard/Genie outputs, and selected final screenshots and wording for submission.
 
 Development strategy: design-first and schema-guided. First, the dataset and organisational process were chosen by comparing them against the rubric. Then the Bronze/Silver/Gold design was specified. Finally, Gold schemas were adjusted to support both dashboard queries and Genie self-service questions.
 

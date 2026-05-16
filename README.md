@@ -51,7 +51,7 @@ The grader can replay the project in Databricks Free Edition using the notebooks
 5. Run `02_incremental_refresh.ipynb` again with `process_mode = next`. This processes `batch_002` and demonstrates the first refresh.
 6. Run `02_incremental_refresh.ipynb` a third time with `process_mode = next`. This processes `batch_003` and demonstrates the second refresh.
 7. Run `03_dashboard_and_genie_queries.ipynb` to display the Gold-table queries used for dashboard and Genie validation.
-8. If a complete one-notebook validation is preferred, `cityfleet_databricks_validation.py` replays reset, batch processing, Silver validation, Gold creation, and final output checks in one Databricks notebook/script.
+8. If a complete one-notebook validation is preferred, `cityfleet_databricks_validation.py` replays reset, batch processing, Silver validation, Gold creation, and final output checks in one file. Import it into Databricks via **Workspace → Import → File** and run it as a Python notebook.
 
 The optional `99_reset_project_tables.ipynb` drops the project tables so the demonstration can be replayed from the beginning without deleting the uploaded batch files.
 
