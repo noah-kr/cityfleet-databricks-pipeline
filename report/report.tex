@@ -181,10 +181,13 @@ At full scale, Bronze would retain raw history cheaply, Silver would be partitio
 \newpage
 \section*{AI Tools Usage}
 
-AI tools used: OpenAI Codex in the Codex desktop environment. The work was collaborative and agentic: Codex helped read the project requirements, profile the provided datasets, compare possible dataset choices, generate the batch files, draft Databricks notebooks, and prepare this report template. The students reviewed the design, made project decisions, ran the Databricks prototype, created the dashboard/Genie outputs, and selected final screenshots and wording for submission.
+AI tools used:
+OpenAI Codex was used in the Codex desktop environment as an AI-assisted development tool. The work was collaborative and agentic, but the main design decisions, validation steps, and final project choices were made by the students. Codex helped us interpret the project requirements, explore and profile the provided datasets, compare suitable dataset options, generate initial batch files, draft Databricks notebook code, and structure parts of the report. We then reviewed, adapted, and tested the generated code and design decisions ourselves.
 
-Development strategy: design-first and schema-guided. First, the dataset and organisational process were chosen by comparing them against the rubric. Then the Bronze/Silver/Gold design was specified. Finally, Gold schemas were adjusted to support both dashboard queries and Genie self-service questions.
+Development strategy:
+Our development followed a design-first and schema-guided approach. We first analysed the assignment rubric and selected a dataset and organisational process that fit the expected requirements. Based on this, we designed the Bronze, Silver, and Gold layers and defined how the data should flow through the pipeline. While AI supported us in drafting much of the Spark/SQL implementation, we adjusted the logic, schemas, and transformations to fit our specific use case. The Gold tables were refined to support both dashboard queries and Genie self-service questions.
 
-Reflection: AI was most useful for converting the assignment rubric into a concrete, reproducible implementation plan and for quickly drafting Spark/SQL notebook code. The main limitation was that Databricks Free Edition still required interactive validation in the actual workspace: file upload, notebook execution, Genie testing, and final screenshot selection had to be checked manually.
+Reflection:
+AI was most useful for turning the assignment requirements into a concrete implementation plan and for quickly producing a first version of the Spark/SQL notebook code. However, the project still required substantial manual work from our side. We had to understand the dataset, decide on the architecture, validate the outputs in Databricks, debug issues during execution, test the dashboard and Genie results, and select the final screenshots and wording for submission. This meant that we still had to actively test and refine the solution in Databricks ourselves, especially for file uploads, notebook execution, table creation, dashboard behaviour, Genie questions, and final output validation.
 
 \end{document}
