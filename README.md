@@ -4,6 +4,23 @@ This project was created for Assignment 2 in Engineering of Data Analysis. It pr
 
 The business case is a hypothetical New York taxi fleet operator called CityFleet. The company uses trip-level taxi data to improve hourly dispatch decisions, weekly fleet planning, fare-quality monitoring, and self-service analysis through Databricks Genie.
 
+## At a glance
+
+| | |
+|---|---|
+| **Goal** | Turn ~2 million raw NYC taxi trips into trusted, business-ready tables for dispatch, fleet planning, fare auditing and self-service analytics. |
+| **Data** | Instructor-provided NYC taxi trip sample (January 2013, 1,999,999 rows), split into three time-ordered batches to simulate incremental arrival. |
+| **Methods** | Medallion architecture on Databricks (Bronze → Silver → Gold) with Delta tables · incremental batch processing with ingestion lineage and row hashes · type casting, validation and quality flags instead of silent drops · deterministic trip IDs for deduplication · spatial grid cells · Gold KPI and anomaly tables · Databricks Genie space for natural-language questions. |
+| **Results** | 1,955,237 clean trips, 314,394 hourly demand rows by grid cell, weekly fleet KPIs and a review queue of 45,382 suspicious fares, all reproducible from the included notebooks and sample data. |
+| **Tech stack** | Databricks · PySpark · Spark SQL · Delta Lake · Unity Catalog volumes · Databricks Genie · Python |
+
+![Databricks Genie answering a demand question on the Gold layer](report_assets/genie_answer.png)
+
+### My contribution
+This was a two-person course project at Nova SBE. I built the project: the batch preparation, the Databricks notebooks for setup, incremental refresh, Silver validation and the Gold tables, the Genie space and dashboard queries, the README and the report. My teammate Xaver Baeppler reviewed the work and made smaller adjustments to the report and documentation. AI-assisted coding tools were used during development, as documented in the report.
+
+> This public repository is a copy of the original course repository with the full commit history. For privacy, the compiled report PDF and an internal file-sharing link were removed from the history, and personal details were masked in two screenshots. The report source remains in `report/report.tex`.
+
 ## Business Process
 
 CityFleet receives taxi trip data with vehicle IDs, driver IDs, pickup and dropoff times, trip distance, GPS coordinates, payment type, fare, tip, tolls, and total amount. These fields support several consumers from the same data source:
